@@ -1,22 +1,20 @@
-<!DOCTYPE html>
 
-<head>
+<html>
+  <head>
+    <title>Chat</title>
     <link rel="stylesheet" href="style.css">
-    
+  </head>
+  <body>
+    <h1>Hello</h1>
 
-</head>
-
-<body>
     <div id="messageBox"></div>
     <input id="inputText"><button id="sendButton">Send</button>
 
-
-    <textarea id="latency" readonly></textarea>
+    <input id="inputName"><button id="sendNameButton">Set Name</button>
 
     <script src="/socket.io/socket.io.js"></script>
     
-    <script src="publicChat.js"></script>
-
-</body>
-
+    <script src="index.js"></script>
+    
+  </body>
 </html>

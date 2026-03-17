@@ -15,37 +15,27 @@ const io = new Server(server);
 server.listen(3000);
 //gives people access to public folder
 app.use(express.static("public"));
-//route
-app.get("ClientFiles", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});
-
 
 
 
 
 
 io.on("connection", (socket) => {
-    console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount );
+    console.log("A user connected " + socket.id);
 
     socket.on("message", (data) => {
-     io.emit("message", {text});
+    io.emit("message", data);
     });
-
 
 
   socket.on("setName", (name) => {
     const user = new User(name);
     socket.user = user;
-    socket.emit("redirect", `/publicChat.html`);
   });
 
-  socket.on("ping", (callback) => {
-    callback();
-  });
 
-  
 });
+
 
 
 //emits message in chat when you type something in the console
