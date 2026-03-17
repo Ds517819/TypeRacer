@@ -1,0 +1,30 @@
+#messageBox {
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #4e3b3b;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.message {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background-color: #0aa536;
+    box-shadow: 0 1px 3px rgba(49, 44, 44, 0.9);
+    font-size: 17px;
+    font-style: bold;
+    color: #f6f7f6;
+}
+
+body {
+    
+    
+    gap: 16px;
+    padding: 32px;
+    background-color: #ece5e5;
+}
