@@ -6,10 +6,10 @@ const sendButton = document.getElementById('sendButton');
 
 
 //when message received, add it to the message box
-socket.on("message", ({ text, name }) => {
+socket.on("message", (text) => {
     const message = document.createElement("div");
     message.classList.add("message");
-    message.innerHTML = `${name}: ${text}`;
+    message.innerHTML = `${text}`;
     messageBox.appendChild(message);
 });
 
@@ -19,11 +19,6 @@ sendButton.addEventListener('click', () => {
     inputText.value = '';
 });
 
-
-
-socket.on("redirect", (url) => {
-  window.location.href = url; 
-});
 
 //ping
 setInterval(() => {

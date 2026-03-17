@@ -16,7 +16,7 @@ server.listen(3000);
 //gives people access to public folder
 app.use(express.static("public"));
 //route
-app.get("/publicChat", (req, res) => {
+app.get("ClientFiles", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
@@ -29,7 +29,7 @@ io.on("connection", (socket) => {
     console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount );
 
     socket.on("message", (data) => {
-     io.emit("message", { text: data, name: socket.user.name });
+     io.emit("message", {text});
     });
 
 
@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
 });
 
 
-
+//emits message in chat when you type something in the console
 process.stdin.on("data", (data) => {
   const words = data.toString().trim().split(" ");
 
