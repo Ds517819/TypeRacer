@@ -14,31 +14,43 @@ const server = http.createServer(app);
 const io = new Server(server);
 server.listen(3000);
 //gives people access to public folder
-app.use(express.static("public"));
+app.use(express.static(__dirname + "/ClientFiles"));
+
+//route
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/ClientFiles/index.html");
+});
+
+
 
 
 
 
 
 io.on("connection", (socket) => {
-    console.log("A user connected " + socket.id);
+    console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount );
 
     socket.on("message", (data) => {
-    io.emit("message", data);
+     io.emit("message", { text: data, name: socket.user.name });
     });
 
 
-  socket.on("setName", (name) => {
-    const user = new User(name);
+
+  socket.on("setName", (username) => {
+    const user = new User(username);
     socket.user = user;
+    socket.emit("redirect", `/publicChat.html`);
   });
 
+  socket.on("ping", (callback) => {
+    callback();
+  });
 
+  
 });
 
 
 
-//emits message in chat when you type something in the console
 process.stdin.on("data", (data) => {
   const words = data.toString().trim().split(" ");
 
