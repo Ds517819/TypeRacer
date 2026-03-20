@@ -1,0 +1,9 @@
+
+button:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+}
+.tournamentButton:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+}

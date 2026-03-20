@@ -5,9 +5,12 @@ const inputText = document.getElementById('inputText');
 
 const sendButton = document.getElementById('sendButton');
 
+const username = localStorage.getItem("username")
+socket.emit("giveName", username)
 
 //when message received, add it to the message box
 socket.on("message", ({ text, name }) => {
+    console.log(text, name)
     const message = document.createElement("div");
     message.classList.add("message");
     message.innerHTML = `${name}: ${text}`;
@@ -23,7 +26,7 @@ sendButton.addEventListener('click', () => {
 
 
 socket.on("redirect", (url) => {
-  window.location.href = url; 
+  window.location = url; 
 });
 
 //ping
