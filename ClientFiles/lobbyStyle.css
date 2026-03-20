@@ -7,3 +7,22 @@ button:disabled {
     cursor: not-allowed !important;
     opacity: 0.5;
 }
+.tournamentHolder {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 2px solid black;
+    width: 600px; /* or however wide you want the list */
+    height: 100vh; /* full page height, like a sidebar */
+    overflow-y: auto; /* scroll if too many tournaments */
+}
+
+.tournamentBox {
+    border: 2px solid gray;
+    padding: 8px;
+    width: 250px;
+    height: 100px;
+    display: flex;
+    
+}

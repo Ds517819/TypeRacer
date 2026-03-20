@@ -1,7 +1,11 @@
 class Tournament {
-    constructor(Users) {
-        this.Users = Users
+    constructor(ID, maxUsers) {
+        this.players = [];
+        this.ID = ID
+        this.maxUsers = maxUsers
     }
+
+    
 
     getUsers(Users) {
         console.log(Users)
@@ -12,12 +16,17 @@ class Tournament {
         })
     }
 
+    addPlayer(player){
+        players.push(player)
+    }
+
 }
 
-class User {
-    constructor(username, ID) {
+
+
+class Player {
+    constructor(username) {
         this.username = username;
-        this.ID = ID;
     }
 
 }
@@ -83,9 +92,12 @@ class Queue {
 }
 
 
-const match = new Match()
-console.log(match.passage) // testing
 
-match.passageQueue.items.forEach((character, index ) => { //testing
+//console.log(match.passage) // testing
+
+/*match.passageQueue.items.forEach((character, index ) => { //testing
     console.log(index, character)
 })
+    */
+
+module.exports = { Tournament, Player, Match, Queue };
