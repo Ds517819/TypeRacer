@@ -4,9 +4,6 @@ class Tournament {
         this.ID = ID
         this.maxUsers = maxUsers
     }
-
-    
-
     getUsers(Users) {
         console.log(Users)
     }
@@ -92,12 +89,12 @@ class Queue {
 }
 
 
+match = new Match()
+console.log(match.passage) // testing
 
-//console.log(match.passage) // testing
-
-/*match.passageQueue.items.forEach((character, index ) => { //testing
+match.passageQueue.items.forEach((character, index ) => { //testing
     console.log(index, character)
 })
-    */
+    
 
 module.exports = { Tournament, Player, Match, Queue };

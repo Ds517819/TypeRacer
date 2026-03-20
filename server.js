@@ -30,7 +30,7 @@ process.stdin.on("data", (data) => {
     }
 })
 
-let Players = [];
+let players = [];
 let tournaments = [];
 
 io.on("connection", (socket) => {
@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
         console.log("setName received:", username);
         let taken = false;
 
-        Players.forEach((player) => {
+        players.forEach((player) => {
             if (username == player.username) {
                 socket.emit("usernameTaken")
                 taken = true;
@@ -51,28 +51,25 @@ io.on("connection", (socket) => {
         });
         if (taken == false) {
             socket.player = new Player(username)
-            Players.push(Player);
+            players.push(Player);
             socket.emit("redirect", `/lobby.html`)
         }
     })
 
     //since on new page different socket, computer sends stored username on local storage and adds to same object
     socket.on("giveName", (username) => {
-        socket.player = Players.find(player => player.username === username);
+        socket.player = players.find(player => player.username === username);
     });
 
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
 
-        io.emit("addTournamentBox", { numberOfPlayers });
+        const id = tournaments.length + 1;
+        const tournament = new Tournament(id, numberOfPlayers);
+        tournaments.push(tournament);
 
-        while(true){
-        tournament = new Tournament()
-
-            tournaments.push(tournament);
-
-        i++
-        }
+        io.emit("addTournamentBox", { numberOfPlayers , id}); 
+        
 
     });
 

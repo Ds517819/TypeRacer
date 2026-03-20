@@ -21,7 +21,7 @@ tournamentMakerButton.addEventListener('click', () => {
 socket.on("addTournamentBox", (data) => {
     const box = document.createElement("div");
     box.classList.add("tournamentBox");
-    box.textContent = `Max Players: ${data.numberOfPlayers}`;
+    box.textContent = `Max Players: ${data.numberOfPlayers}` + "\n" + 'Tournament ID: ${data.id}';
 
     const joinButton = document.createElement("button");
     joinButton.textContent = "Join";
