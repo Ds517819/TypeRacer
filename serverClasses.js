@@ -1,22 +1,26 @@
 class Tournament {
-    constructor(ID, maxUsers) {
+    constructor(ID, maxPlayers) {
         this.players = [];
-        this.ID = ID
-        this.maxUsers = maxUsers
-    }
-    getUsers(Users) {
-        console.log(Users)
-    }
-    getUsernames(Users) {
-        Users.forEach((user) => {
-            return user.username + " ";
-        })
+        this.ID = ID;
+        this.maxPlayers = maxPlayers;
     }
 
-    addPlayer(player){
-        players.push(player)
+    getPlayer(index) {
+        console.log(this.players[index]); // added this.
     }
 
+    getUsernames() {
+        return this.players.map(player => player.username).join(" ");
+    }
+
+    addPlayer(player) {
+        this.players.push(player); // added this.
+    }
+
+    removePlayer(player) {
+        const index = this.players.indexOf(player);
+        this.players.splice(index, 1);
+    }
 }
 
 
@@ -31,8 +35,8 @@ class Player {
 
 //class for the 1v1s
 class Match {
-    constructor(Users, matchNumber) {
-        this.Users = Users
+    constructor(players, matchNumber) {
+        this.players = players
         this.matchNumber = matchNumber
         this.countdown = 10
         this.passage = this.readPassage()
@@ -89,12 +93,5 @@ class Queue {
 }
 
 
-match = new Match()
-console.log(match.passage) // testing
-
-match.passageQueue.items.forEach((character, index ) => { //testing
-    console.log(index, character)
-})
-    
 
 module.exports = { Tournament, Player, Match, Queue };

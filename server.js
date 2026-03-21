@@ -51,8 +51,8 @@ io.on("connection", (socket) => {
         });
         if (taken == false) {
             socket.player = new Player(username)
-            players.push(Player);
-            socket.emit("redirect", `/lobby.html`)
+            players.push(socket.player);
+            socket.emit("redirect", `/lobby.html`) // sends them to the lobby
         }
     })
 
@@ -64,24 +64,29 @@ io.on("connection", (socket) => {
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
 
-        const id = tournaments.length + 1;
+        const id = tournaments.length;
         const tournament = new Tournament(id, numberOfPlayers);
         tournaments.push(tournament);
 
-        io.emit("addTournamentBox", { numberOfPlayers , id}); 
-        
+        io.emit("addTournamentBox", { numberOfPlayers, id });
+
 
     });
 
     socket.on("joinButtonClicked", (tournamentID) => {
-    const tournament = tournaments.find(t => t.ID === tournamentID);
+        const tournament = tournaments.find(t => t.ID === Number(tournamentID));
 
-    if(tournament) {
-        tournament.addPlayer(socket.player);
-        socket.emit("tournamentJoined")
-    } else {
-        console.log("Tournament not found:", tournamentID);
-    }
+        if (tournament) {
+            tournament.addPlayer(socket.player);
+            io.emit("updateQueue", {
+                id: tournamentID,
+                queueCount: tournament.players.length,
+                maxPlayers: tournament.maxPlayers // was: tournament.maxUsers
+            });
+        }
+        else {
+            console.log("Tournament not found:", tournamentID);
+        }
     });
 
 
