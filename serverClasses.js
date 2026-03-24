@@ -61,6 +61,16 @@ class Player {
 
     }
 
+    checkInput(key){ //players inputted key will be compared to the queue and will dequeue if it is the same
+        if(key === this.passageQueue.peek){
+            this.passageQueue.dequeue();
+            return true;
+        }
+        else{
+            return false
+        }
+    }
+
 }
 
 
@@ -85,17 +95,6 @@ class Match {
 
         return passage
     }
-
-    
-
-
-
-    
-
-
-
-
-
 }
 
 class Queue {

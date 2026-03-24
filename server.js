@@ -30,8 +30,8 @@ process.stdin.on("data", (data) => {
     }
 })
 
-let players = [];
-let tournaments = [];
+let players = [];// arr of server players
+let tournaments = [];// arr of server tournaments
 
 io.on("connection", (socket) => {
     socket.username = null  // store it on the socket
