@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
             io.emit("updateQueue", {
                 id: tournamentID,
                 queueCount: tournament.players.length,
-                maxPlayers: tournament.maxPlayers // was: tournament.maxUsers
+                maxPlayers: tournament.maxPlayers
             });
         }
         else {

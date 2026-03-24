@@ -28,6 +28,31 @@ class Tournament {
 class Player {
     constructor(username) {
         this.username = username;
+        this.passageQueue = null; // included in player because each player gets their own for each match
+    }
+
+    makePassageQueue(passage) {
+        const queue = new Queue()
+        passage.split('').forEach((character) => {
+            queue.enqueue(character)
+        })
+        return queue
+    }
+
+    isFinished(){
+        if (this.passageQueue =! null){
+            // if they finished the passage return true
+            if (this.passageQueue.isEmpty()){
+                this.passageQueue = null; //wipes for next round?
+                return true;
+            }
+            //otherwise they are not finished
+            else
+                {
+                return false;
+            }
+        }
+
     }
 
 }
@@ -40,7 +65,6 @@ class Match {
         this.matchNumber = matchNumber
         this.countdown = 10
         this.passage = this.readPassage()
-        this.passageQueue = this.makePassageQueue(this.passage)
         this.startTime = 0
         this.endTime = 0
     }
@@ -56,13 +80,7 @@ class Match {
         return passage
     }
 
-    makePassageQueue(passage) {
-        const queue = new Queue()
-        passage.split('').forEach((character) => {
-            queue.enqueue(character)
-        })
-        return queue
-    }
+    
 
 
 
