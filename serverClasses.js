@@ -21,6 +21,12 @@ class Tournament {
         const index = this.players.indexOf(player);
         this.players.splice(index, 1);
     }
+
+    startRound(){
+
+    }
+
+
 }
 
 
@@ -79,6 +85,10 @@ class Match {
 
         return passage
     }
+
+    
+
+
 
     
 
