@@ -1,59 +1,112 @@
-//http://10.19.107.193:3000
-
-
+const { Tournament, Player, Match, Queue } = require("./serverClasses.js");
 //loads express module and assigns it to a variable called express
 const express = require("express");
 //to access http server
 const http = require("http");
-const User = require('./user');
+
 //gets server class from socket.io module
 const socketio = require("socket.io");
 const Server = socketio.Server;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
 server.listen(3000);
 //gives people access to public folder
-app.use(express.static("public"));
-//route
-app.get("/publicChat", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
+app.use(express.static(__dirname + "/ClientFiles"));
+
+//route, where the server sends clients first
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/ClientFiles/setName.html");
 });
 
 
+// so server can talk
+process.stdin.on("data", (data) => {
+    const words = data.toString().trim().split(" ")
 
+    if (words[0] === "broadcast") {
+        io.emit("message", { text: data.toString().substring(9), name: "Server" })
+    }
+})
 
-
+let players = [];// arr of server players
+let tournaments = [];// arr of server tournaments
 
 io.on("connection", (socket) => {
-    console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount );
+    socket.username = null  // store it on the socket
+    console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount);
 
-    socket.on("message", (data) => {
-     io.emit("message", { text: data, name: socket.user.name });
+
+    //sets name, if name taken then nothing
+    socket.on("setName", (username) => {
+        console.log("setName received:", username);
+        let taken = false;
+
+        players.forEach((player) => {
+            if (username == player.username) {
+                socket.emit("usernameTaken")
+                taken = true;
+            }
+        });
+        if (taken == false) {
+            socket.player = new Player(username)
+            players.push(socket.player);
+            socket.emit("redirect", `/lobby.html`) // sends them to the lobby
+        }
+    })
+
+    //since on new page different socket, computer sends stored username on local storage and adds to same object
+    socket.on("giveName", (username) => {
+        socket.player = players.find(player => player.username === username);
+        
+        for(let i = 0; i < tournaments.length; i++){ //for every tournament, return the current amount of players and the lobby id. had to add currentPlayers to constructor
+            socket.emit("addTournamentBox", {numberOfPlayers: tournaments[i].currentPlayers, id: tournaments[i].ID})
+            socket.emit("updateQueue", { id: tournaments[i].ID, queueCount: tournaments[i].currentPlayers, maxPlayers: tournaments[i].maxPlayers 
+            });
+        }
+        
+    });
+
+    //when someone presses create tournament button
+    socket.on("tournamentCreated", (numberOfPlayers) => {
+        console.log("Tournament created with", numberOfPlayers, "players");
+        const id = tournaments.length;
+        const tournament = new Tournament(id, numberOfPlayers);
+        tournaments.push(tournament);
+
+        io.emit("addTournamentBox", { numberOfPlayers, id });
+        console.log("Emitted addTournamentBox to all clients");
+
+    });
+
+    socket.on("joinButtonClicked", (tournamentID) => {
+        const tournament = tournaments.find(t => t.ID === Number(tournamentID));
+        if(tournament.currentPlayers >= tournament.maxPlayers) {
+            socket.emit("tournamentFull", tournamentID);
+            return;
+        }
+
+        if (tournament) {
+            tournament.addPlayer(socket.player);
+            io.emit("updateQueue", {
+                id: tournamentID,
+                queueCount: tournament.players.length,
+                maxPlayers: tournament.maxPlayers
+            });
+        }
+        else {
+            console.log("Tournament not found:", tournamentID);
+        }
     });
 
 
 
-  socket.on("setName", (name) => {
-    const user = new User(name);
-    socket.user = user;
-    socket.emit("redirect", `/publicChat.html`);
-  });
+    socket.on("message", (data) => {
+        io.emit("message", { text: data, name: socket.username })
+    })
 
-  socket.on("ping", (callback) => {
-    callback();
-  });
-
-  
-});
-
-
-
-process.stdin.on("data", (data) => {
-  const words = data.toString().trim().split(" ");
-
-
-  if(words[0] === "broadcast"){
-    io.emit("message", { message: data.toString().substring(9), name: "Server" });
-  }
-});
+    socket.on("ping", (callback) => {
+        callback()
+    })
+})
