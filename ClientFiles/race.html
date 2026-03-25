@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TypeRacer - Race</title>
+    <link rel="stylesheet" href="raceStyle.css">
+  </head>
+  <body>
+    <div class="race-container">
+      <h1 class="title">TypeRacer</h1>
+
+      <!-- Countdown overlay -->
+      <div id="countdown-overlay" class="countdown-overlay">
+        <div id="countdown-number" class="countdown-number">3</div>
+      </div>
+
+      <!-- Passage to type -->
+      <div class="passage-box">
+        <div id="passage-display" class="passage-display"></div>
+      </div>
+
+      <!-- Typing input -->
+      <input
+        id="race-input"
+        type="text"
+        class="race-input"
+        placeholder="Waiting for countdown…"
+        disabled
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      >
+
+      <!-- Live stats -->
+      <div class="stats-bar">
+        <span>WPM: <strong id="wpm">0</strong></span>
+        <span>Progress: <strong id="progress-pct">0</strong>%</span>
+      </div>
+
+      <!-- Per-player progress bars -->
+      <div id="players-container" class="players-container"></div>
+
+      <!-- Race result banner -->
+      <div id="finish-message" class="finish-message" hidden></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="race.js"></script>
+  </body>
+</html>

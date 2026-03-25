@@ -78,18 +78,64 @@ io.on("connection", (socket) => {
 
         if (tournament) {
             tournament.addPlayer(socket.player);
+            // Keep this socket in the tournament's room for targeted events
+            socket.join(`tournament-${tournamentID}`);
             io.emit("updateQueue", {
                 id: tournamentID,
                 queueCount: tournament.players.length,
                 maxPlayers: tournament.maxPlayers
             });
+
+            // When the queue is full, start the race for everyone in the room
+            if (tournament.players.length >= tournament.maxPlayers) {
+                const match = new Match(tournament.players, 0 /* match index */);
+                tournament.currentPassage = match.passage;
+                io.to(`tournament-${tournamentID}`).emit("redirectToRace", {
+                    tournamentId: tournamentID,
+                    passage: match.passage,
+                    players: tournament.players.map(p => p.username)
+                });
+            }
         }
         else {
             console.log("Tournament not found:", tournamentID);
         }
     });
 
+    // Re-join room after page redirect (new socket connection on race.html)
+    socket.on("rejoinTournament", (tournamentID) => {
+        socket.join(`tournament-${tournamentID}`);
+        const tournament = tournaments.find(t => t.ID === Number(tournamentID));
+        if (tournament && tournament.currentPassage) {
+            socket.emit("raceData", {
+                passage: tournament.currentPassage,
+                players: tournament.players.map(p => p.username)
+            });
+        }
+    });
 
+    // Broadcast a player's typing progress to everyone else in the tournament room
+    socket.on("playerProgress", (data) => {
+        if (socket.player) {
+            socket.to(`tournament-${data.tournamentId}`).emit("updateProgress", {
+                username: socket.player.username,
+                progress: data.progress
+            });
+        }
+    });
+
+    // Announce the winner to everyone in the tournament room (first finisher only)
+    socket.on("playerFinished", (data) => {
+        if (socket.player) {
+            const tournament = tournaments.find(t => t.ID === Number(data.tournamentId));
+            if (tournament && !tournament.raceFinished) {
+                tournament.raceFinished = true;
+                io.to(`tournament-${data.tournamentId}`).emit("raceFinished", {
+                    winner: socket.player.username
+                });
+            }
+        }
+    });
 
     socket.on("message", (data) => {
         io.emit("message", { text: data, name: socket.username })

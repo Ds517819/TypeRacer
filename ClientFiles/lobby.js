@@ -61,3 +61,11 @@ joinButtons.forEach((joinButton) => {
         socket.emit("joinButtonClicked", tournamentID);
     });
 });
+
+// When the tournament queue is full the server tells everyone to head to the race page
+socket.on("redirectToRace", (data) => {
+    localStorage.setItem("tournamentId", data.tournamentId);
+    localStorage.setItem("passage", data.passage);
+    localStorage.setItem("racePlayers", JSON.stringify(data.players));
+    window.location.href = "/race.html";
+});

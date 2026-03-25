@@ -3,6 +3,8 @@ class Tournament {
         this.players = [];
         this.ID = ID;
         this.maxPlayers = maxPlayers;
+        this.currentPassage = null;
+        this.raceFinished = false; // true once the first finisher is declared
     }
 
     getPlayer(index) {
@@ -46,7 +48,7 @@ class Player {
     }
 
     isFinished(){
-        if (this.passageQueue =! null){
+        if (this.passageQueue != null){
             // if they finished the passage return true
             if (this.passageQueue.isEmpty()){
                 this.passageQueue = null; //wipes for next round?
@@ -62,7 +64,7 @@ class Player {
     }
 
     checkInput(key){ //players inputted key will be compared to the queue and will dequeue if it is the same
-        if(key === this.passageQueue.peek){
+        if(key === this.passageQueue.peek()){
             this.passageQueue.dequeue();
             return true;
         }
@@ -89,7 +91,7 @@ class Match {
     //will read passages file and randomly return one passage for use
     readPassage() {
         const fs = require('fs')
-        const passages = fs.readFileSync('passages.txt', 'utf8').split('\n')
+        const passages = fs.readFileSync('passages.txt', 'utf8').split('\n').filter(p => p.trim().length > 0)
 
         const passage = passages[Math.floor(Math.random() * passages.length)] // gets random passage
 
