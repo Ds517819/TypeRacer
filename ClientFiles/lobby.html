@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Lobby</title>
+    <link rel="stylesheet" href="lobbyStyle.css">
+  </head>
+  <body>
+
+    <label>Enter Player Number</label>
+    <input type="number" id="numberOfPlayers" min="2" max="20">
+    <button id="tournamentMakerButton" class="button">Make Tournament</button>
+    <div class = "tournamentHolder">
+      <div class = "tournamentBox">This is a tournament</div>
+      <div class = "tournamentBox"></div>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="lobby.js"></script>
+    
+  </body>
+</html>

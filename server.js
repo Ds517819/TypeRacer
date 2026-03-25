@@ -70,6 +70,7 @@ io.on("connection", (socket) => {
 
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
+        tournament.addPlayer(socket.player); //automatically add host to tournament
         console.log("Tournament created with", numberOfPlayers, "players");
         const id = tournaments.length;
         const tournament = new Tournament(id, numberOfPlayers);
@@ -94,6 +95,9 @@ io.on("connection", (socket) => {
                 queueCount: tournament.players.length,
                 maxPlayers: tournament.maxPlayers
             });
+            if(tournament.players.length === tournament.maxPlayers) {
+                //TODO: figure out if we want to automatically start tournament once full? or let host decide
+            } 
         }
         else {
             console.log("Tournament not found:", tournamentID);

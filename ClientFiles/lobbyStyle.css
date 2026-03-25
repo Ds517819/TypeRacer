@@ -1,0 +1,131 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+label {
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+input[type="number"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid grey;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    color: white;
+    margin-right: 10px;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 10px 5px;
+    transition: background 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+button:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+    background: #555;
+}
+
+.tournamentButton:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.5;
+}
+
+.button {
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.button:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.tournamentHolder {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    border: 2px solid grey;
+    border-radius: 8px;
+    width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: black;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    margin-top: 20px;
+}
+
+.tournamentBox {
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 15px;
+    width: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #1a1a1a;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tournamentBox:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.15);
+}
+
+.tournamentBox p {
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+.joinButton {
+    background: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.joinButton:hover:not(:disabled) {
+    background: #218838;
+}
+
+.joinButton:disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
