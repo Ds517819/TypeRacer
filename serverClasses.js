@@ -2,7 +2,7 @@ class Tournament {
     constructor(ID, maxPlayers) {
         this.players = [];
         this.ID = ID;
-        this.maxPlayers = maxPlayers;
+        this.maxPlayers = maxPlayers;  //adding comment to commit to branch
         this.currentPlayers = 0; //adding to track how many players in each tournament, will also be used to prevent players from joining full lobby
     }
 
