@@ -33,6 +33,8 @@ process.stdin.on("data", (data) => {
 let players = [];// arr of server players
 let tournaments = [];// arr of server tournaments
 
+
+
 io.on("connection", (socket) => {
     socket.username = null  // store it on the socket
     console.log("A user connected " + socket.handshake.address + " at " + new Date().toLocaleTimeString() + " Current Connections: " + io.engine.clientsCount);
@@ -60,31 +62,36 @@ io.on("connection", (socket) => {
     socket.on("giveName", (username) => {
         socket.player = players.find(player => player.username === username);
         
-        for(let i = 0; i < tournaments.length; i++){ //for every tournament, return the current amount of players and the lobby id. had to add currentPlayers to constructor
-            socket.emit("addTournamentBox", {numberOfPlayers: tournaments[i].currentPlayers, id: tournaments[i].ID})
-            socket.emit("updateQueue", { id: tournaments[i].ID, queueCount: tournaments[i].currentPlayers, maxPlayers: tournaments[i].maxPlayers 
-            });
-        }
+        refresh(socket);
         
     });
 
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
-        tournament.addPlayer(socket.player); //automatically add host to tournament
         console.log("Tournament created with", numberOfPlayers, "players");
         const id = tournaments.length;
         const tournament = new Tournament(id, numberOfPlayers);
+        tournament.addPlayer(socket.player); //automatically add host to tournament
         tournaments.push(tournament);
 
         io.emit("addTournamentBox", { numberOfPlayers, id });
+        io.emit("updateQueue", {id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers});
         console.log("Emitted addTournamentBox to all clients");
 
     });
 
     socket.on("joinButtonClicked", (tournamentID) => {
         const tournament = tournaments.find(t => t.ID === Number(tournamentID));
+        
+        
+        if (tournament.players.some(p => p.username === socket.player.username)) { //if player in tournament
+            socket.emit("alreadyInTournament", tournamentID);
+            return;
+        }
+        
         if(tournament.currentPlayers >= tournament.maxPlayers) {
             socket.emit("tournamentFull", tournamentID);
+            refresh(socket);
             return;
         }
 
@@ -97,6 +104,7 @@ io.on("connection", (socket) => {
             });
             if(tournament.players.length === tournament.maxPlayers) {
                 //TODO: figure out if we want to automatically start tournament once full? or let host decide
+                //Will start immeadiateley upon being full
             } 
         }
         else {

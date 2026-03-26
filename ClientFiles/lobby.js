@@ -15,6 +15,14 @@ numberOfPlayers.addEventListener('input', () => {
 
 tournamentMakerButton.addEventListener('click', () => {
     socket.emit("tournamentCreated", numberOfPlayers.value)
+    const joinButtons = document.querySelectorAll(".joinButton");
+    joinButtons.disabled = true;
+    joinButtons.forEach((joinButton) => {
+        joinButton.disabled = true; 
+    })
+    //TODO: track id of tournament created by host, disable that tournament box's join button
+
+
 })
 
 
@@ -39,11 +47,12 @@ socket.on("addTournamentBox", (data) => {
     box.appendChild(joinButton);
 
     document.querySelector(".tournamentHolder").appendChild(box);
+    
 
     joinButton.addEventListener('click', () => { 
     const tournamentID = box.id.split("-")[1];
-    socket.emit("joinButtonClicked", tournamentID); // updates queue
     joinButton.disabled = true
+    socket.emit("joinButtonClicked", tournamentID); // updates queue
 });
 });
 
@@ -51,7 +60,10 @@ socket.on("addTournamentBox", (data) => {
 socket.on("updateQueue", (data) => {
     const box = document.querySelector(`#tournament-${data.id}`);
     const queue = box.querySelector("p:nth-child(1)"); // selects the first p (queue)
-    queue.textContent = `Queue: ${data.queueCount}/${data.maxPlayers}`;
+    queue.textContent = `Queue: ${data.queueCount}/${data.maxPlayers}`
+    if(data.queueCount >= data.maxPlayers) { //automatically remove tournament box once full
+        box.remove();
+    };
 });
 
 const joinButtons = document.querySelectorAll(".joinButton");
@@ -61,3 +73,16 @@ joinButtons.forEach((joinButton) => {
         socket.emit("joinButtonClicked", tournamentID);
     });
 });
+
+
+socket.on("tournamentFull", (tournamentID) => { //if user tries to join a full tournament, popup window and refresh the page
+    alert("tournament is full");
+});
+
+function refresh(socket) { //whenever someone first joins or tries to connect to a full game, refresh the current tournaments
+    for(let i = 0; i < tournaments.length; i++){ //for every tournament, return the current amount of players and the lobby id. had to add currentPlayers to constructor
+        socket.emit("addTournamentBox", {numberOfPlayers: tournaments[i].currentPlayers, id: tournaments[i].ID})
+            socket.emit("updateQueue", { id: tournaments[i].ID, queueCount: tournaments[i].currentPlayers, maxPlayers: tournaments[i].maxPlayers 
+            });
+        }
+}
