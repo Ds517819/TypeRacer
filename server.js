@@ -69,7 +69,7 @@ io.on("connection", (socket) => {
         if (tournaments.length !== 0) {
             tournaments.forEach((tournament) => {
                 if (tournament.players.length != tournament.maxPlayers) {
-                    socket.emit("addTournamentBox", { numberOfPlayers: tournament.maxPlayers, id: tournament.ID });
+                    socket.emit("addTournamentBox", { numberOfPlayers: tournament.maxPlayers, id: tournament.ID, createdBy: tournament.players[0].username });
                     socket.emit("updateQueue", { id: tournament.ID, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
                 }
             });
@@ -84,7 +84,7 @@ io.on("connection", (socket) => {
         tournament.addPlayer(socket.player); //automatically add host to tournament
         tournaments.push(tournament);
 
-        io.emit("addTournamentBox", { numberOfPlayers, id });
+        io.emit("addTournamentBox", { numberOfPlayers, id, createdBy: tournament.players[0].username });
         io.emit("updateQueue", { id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
         console.log("Emitted addTournamentBox to all clients");
 
