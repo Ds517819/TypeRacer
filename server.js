@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 
-// so server can talk
+// so server can talk (not currently used)
 process.stdin.on("data", (data) => {
     const words = data.toString().trim().split(" ")
 
@@ -61,10 +61,20 @@ io.on("connection", (socket) => {
     //since on new page different socket, computer sends stored username on local storage and adds to same object
     socket.on("giveName", (username) => {
         socket.player = players.find(player => player.username === username);
-        
-        refresh(socket);
-        
+
     });
+
+    //if in lobby, request active tournaments to display
+    socket.on("requestActiveTournaments", () => {
+        if (tournaments.length !== 0) {
+            tournaments.forEach((tournament) => {
+                if (tournament.players.length != tournament.maxPlayers) {
+                    socket.emit("addTournamentBox", { numberOfPlayers: tournament.maxPlayers, id: tournament.ID });
+                    socket.emit("updateQueue", { id: tournament.ID, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
+                }
+            });
+        }
+    })
 
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
@@ -75,23 +85,23 @@ io.on("connection", (socket) => {
         tournaments.push(tournament);
 
         io.emit("addTournamentBox", { numberOfPlayers, id });
-        io.emit("updateQueue", {id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers});
+        io.emit("updateQueue", { id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
         console.log("Emitted addTournamentBox to all clients");
 
     });
 
     socket.on("joinButtonClicked", (tournamentID) => {
+        if (!socket.player) return;
         const tournament = tournaments.find(t => t.ID === Number(tournamentID));
-        
-        
+
         if (tournament.players.some(p => p.username === socket.player.username)) { //if player in tournament
             socket.emit("alreadyInTournament", tournamentID);
             return;
         }
-        
-        if(tournament.currentPlayers >= tournament.maxPlayers) {
+
+        if (tournament.players.length >= tournament.maxPlayers) {
             socket.emit("tournamentFull", tournamentID);
-            refresh(socket);
+
             return;
         }
 
@@ -102,10 +112,10 @@ io.on("connection", (socket) => {
                 queueCount: tournament.players.length,
                 maxPlayers: tournament.maxPlayers
             });
-            if(tournament.players.length === tournament.maxPlayers) {
+            if (tournament.players.length === tournament.maxPlayers) {
                 //TODO: figure out if we want to automatically start tournament once full? or let host decide
                 //Will start immeadiateley upon being full
-            } 
+            }
         }
         else {
             console.log("Tournament not found:", tournamentID);
@@ -121,4 +131,11 @@ io.on("connection", (socket) => {
     socket.on("ping", (callback) => {
         callback()
     })
+
+    //when someone connects to lobby, they will see all the active tournaments
+
+
+
+
 })
+
