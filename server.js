@@ -1,4 +1,4 @@
-const { Tournament, Player, Match, Queue } = require("./serverClasses.js");
+const { Tournament, Player, Match, Queue, Round } = require("./serverClasses.js");
 //loads express module and assigns it to a variable called express
 const express = require("express");
 //to access http server
@@ -112,9 +112,27 @@ io.on("connection", (socket) => {
                 queueCount: tournament.players.length,
                 maxPlayers: tournament.maxPlayers
             });
-            if (tournament.players.length === tournament.maxPlayers) {
-                //TODO: figure out if we want to automatically start tournament once full? or let host decide
-                //Will start immeadiateley upon being full
+
+
+            // Start the round and redirect players to their matches
+            if (tournament.players.length === Number(tournament.maxPlayers)) {
+                console.log("Starting tournament", tournamentID);
+                const round = tournament.startRound(); //stores round in rounds array in tournament
+                console.log("Round created, matches:", round.matches.length);
+                round.matches.forEach((match) => {
+                    const roomId = `tournament-${tournament.ID}-match-${match.matchNumber}`;
+
+                    const socket1 = getSocketByUsername(match.playerOne.username);
+                    const socket2 = getSocketByUsername(match.playerTwo.username);
+
+                      console.log("socket1 found:", !!socket1, match.playerOne.username);
+                        console.log("socket2 found:", !!socket2, match.playerTwo.username);
+
+                    if (socket1) socket1.join(roomId);
+                    if (socket2) socket2.join(roomId);
+
+                    io.to(roomId).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
+                });
             }
         }
         else {
@@ -132,10 +150,58 @@ io.on("connection", (socket) => {
         callback()
     })
 
-    //when someone connects to lobby, they will see all the active tournaments
+
+
+
+
+    // --------------------- MATCH LOGIC ---------------------
+
+    socket.on("joinMatch", (data) => {
+        socket.player = players.find(p => p.username === data.username);
+        socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
+    });
+
+    socket.on("matchComplete", (data) => {
+        // data should contain matchId and tournamentId so server knows which match
+        const tournament = tournaments.find(t => t.ID === data.tournamentId);
+        const round = tournament.rounds[tournament.rounds.length - 1]; // get current round
+        const match = round.matches.find(m => m.matchNumber === data.matchId);
+
+        match.winner = socket.player; // set the winner
+
+        if (round.isComplete()) {
+            const winners = round.getWinners();
+
+            if (winners.length === 1) {
+                io.emit("tournamentWinner", winners[0].username);
+                return;
+            }
+            //start next round
+            const nextRound = new Round(winners);
+            tournament.rounds.push(nextRound);
+
+            nextRound.matches.forEach((match) => {
+                const socket1 = getSocketByUsername(match.playerOne.username);
+                const socket2 = getSocketByUsername(match.playerTwo.username);
+                if (socket1) socket1.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
+                if (socket2) socket2.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
+                io.to(`tournament-${tournament.ID}-match-${match.matchNumber}`).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
+            });
+        }
+    });
 
 
 
 
 })
 
+
+
+function getSocketByUsername(username) { // allows us to get a socket by username, useful for sending messages to specific people
+    for (const [id, socket] of io.sockets.sockets) {
+        if (socket.player && socket.player.username === username) {
+            return socket;
+        }
+    }
+    return null;
+}

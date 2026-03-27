@@ -83,6 +83,10 @@ socket.on("tournamentFull", (tournamentID) => { //if user tries to join a full t
     alert("tournament is full");
 });
 
+socket.on("redirect", (url) => {
+    window.location.href = url;
+});
+
 function disableJoinButtons() {
     const joinButtons = document.querySelectorAll(".joinButton");
     joinButtons.forEach((button) => {
