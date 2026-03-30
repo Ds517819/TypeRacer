@@ -95,12 +95,12 @@ io.on("connection", (socket) => {
         const tournament = tournaments.find(t => t.ID === Number(tournamentID));
 
         if (tournament.players.some(p => p.username === socket.player.username)) { //if player in tournament
-            socket.emit("alreadyInTournament", tournamentID);
+            socket.emit("alreadyInTournament", tournamentID); 
             return;
         }
 
         if (tournament.players.length >= tournament.maxPlayers) {
-            socket.emit("tournamentFull", tournamentID);
+            socket.emit("tournamentFull", tournamentID); //Note: Do we need?
 
             return;
         }
@@ -150,13 +150,7 @@ io.on("connection", (socket) => {
         callback()
     })
 
-
-
-
-
-    // --------------------- MATCH LOGIC ---------------------
-
-    socket.on("joinMatch", (data) => { //once player joins match we send the corresponding username and match info
+    socket.on("joinMatch", (data) => {
         socket.player = players.find(p => p.username === data.username);
         socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
     });
