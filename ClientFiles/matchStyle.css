@@ -1,0 +1,257 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ========== ADDED: Match Info Header Styles ========== */
+.match-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 15px 25px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+#roundInfo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+#matchNumber {
+    font-size: 18px;
+    color: #fff;
+}
+/* ========== END ADDED: Match Info Header Styles ========== */
+
+/* Bracket Display */
+.bracket-container {
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 15px;
+    width: 280px;
+    height: fit-content;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+#bracketCanvas {
+    display: block;
+}
+
+/* Main Race Container */
+.race-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Progress Bars Section */
+.progress-section {
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+.progress-container {
+    margin-bottom: 15px;
+}
+
+.progress-container:last-child {
+    margin-bottom: 0;
+}
+
+.player-label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.current-player .player-label {
+    color: #4CAF50;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 50px;
+    background-color: #333;
+    border: 2px solid grey;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.current-player .progress-bar {
+    background-color: #4CAF50;
+}
+
+.progress-container:not(.current-player) .progress-bar {
+    background-color: #FF6B6B;
+}
+
+.percentage {
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Passage Container */
+.passage-container {
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 30px;
+    min-height: 200px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+#passageText {
+    font-size: 20px;
+    line-height: 1.8;
+    color: white;
+    font-family: 'Courier New', monospace;
+}
+
+.char {
+    transition: all 0.1s ease;
+}
+
+.char.correct {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.char.incorrect {
+    color: #ff0000;
+    background-color: #ffcccc;
+    font-weight: bold;
+}
+
+/* Input Container */
+.input-container {
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+#typingInput {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid grey;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    background-color: black;
+    color: white;
+}
+
+#typingInput:focus {
+    outline: none;
+    border-color: #007bff;
+    background-color: #1a1a1a;
+}
+
+#typingInput:disabled {
+    background-color: #333;
+    cursor: not-allowed;
+}
+
+/* Status Container */
+.status-container {
+    text-align: center;
+}
+
+#countdownDisplay {
+    font-size: 36px;
+    font-weight: bold;
+    color: #ff6b00;
+    margin-bottom: 10px;
+    display: none;
+}
+
+#statusMessage {
+    font-size: 18px;
+    color: white;
+    padding: 10px;
+    background-color: #1a1a1a;
+    border: 2px solid grey;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .bracket-container {
+        width: 100%;
+    }
+    
+    #bracketCanvas {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    #passageText {
+        font-size: 16px;
+    }
+    
+    #typingInput {
+        font-size: 16px;
+    }
+    
+    .progress-bar-wrapper {
+        height: 40px;
+    }
+    
+    .percentage {
+        font-size: 14px;
+    }
+}
