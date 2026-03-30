@@ -156,37 +156,36 @@ io.on("connection", (socket) => {
 
     // --------------------- MATCH LOGIC ---------------------
 
-    socket.on("joinMatch", (data) => {
+    socket.on("joinMatch", (data) => { //once player joins match we send the corresponding username and match info
         socket.player = players.find(p => p.username === data.username);
         socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
     });
 
     socket.on("matchComplete", (data) => {
-        // data should contain matchId and tournamentId so server knows which match
-        const tournament = tournaments.find(t => t.ID === data.tournamentId);
+        const tournament = tournaments.find(t => t.ID === data.tournamentId); 
         const round = tournament.rounds[tournament.rounds.length - 1]; // get current round
         const match = round.matches.find(m => m.matchNumber === data.matchId);
 
         match.winner = socket.player; // set the winner
 
-        if (round.isComplete()) {
+        if (round.isComplete()) { //if all matches in the round are complete
             const winners = round.getWinners();
 
-            if (winners.length === 1) {
+            if (winners.length === 1) { //if theres only one winner, end tournament
                 io.emit("tournamentWinner", winners[0].username);
                 return;
             }
-            //start next round
-            const nextRound = new Round(winners);
-            tournament.rounds.push(nextRound);
+            const nextRound = new Round(winners); //else we wanna start a new round
+            tournament.rounds.push(nextRound); 
 
-            nextRound.matches.forEach((match) => {
+            for (let i = 0; i < nextRound.matches.length; i++) { //for each match in the next round, send the corresponding players to their match page
+                const match = nextRound.matches[i];
                 const socket1 = getSocketByUsername(match.playerOne.username);
                 const socket2 = getSocketByUsername(match.playerTwo.username);
                 if (socket1) socket1.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
                 if (socket2) socket2.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
                 io.to(`tournament-${tournament.ID}-match-${match.matchNumber}`).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
-            });
+            }
         }
     });
 

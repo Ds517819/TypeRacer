@@ -1,17 +1,38 @@
-// two players are sent to the same match page, the match page will be determined by the match number
+
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Match</title>
-    <link rel="stylesheet" href="matchStyle.css">
-  </head>
-  <body>
-    <div class="matchInfo">
-      <div id="playerOne">Player One: </div>
-      <div id="playerTwo">Player Two: </div>
+<head>
+    <title>TypeRacer - Match</title>
+    <link rel="stylesheet" href="raceStyle.css">
+</head>
+<body>
+    <div class="container">
+        <div class="match_info">
+            <div id="round_num"></div> <!-- Round number-->
+            <div id="ID"></div>
+        </div>
+
+        <div class="race">
+            <div class="progress-section"> <!-- Player Progress Bars -->
+                <div id="playerProgressBars"></div>
+            </div>
+
+            <div class="passage-container">
+                <div id="passageText"></div>
+            </div>
+
+            <div class="input-container"> <!-- Input Area -->
+                <input type="text" id="typingInput" placeholder="Type here when race starts..." disabled autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="status-container"> <!-- Countdown/Status -->
+                <div id="countdownDisplay"></div>
+                <div id="statusMessage"></div>
+            </div>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="match.js"></script>
-    
-  </body>
+</body>
 </html>
