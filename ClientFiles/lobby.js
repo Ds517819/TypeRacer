@@ -35,6 +35,7 @@ socket.on("addTournamentBox", (data) => {
     queue.textContent = `Queue: 0/${data.numberOfPlayers}`;
     tournamentID.textContent = `ID: ${data.id}`;
     createdBy.textContent = `Created by: ${data.createdBy}`;
+    //to do: add way to see current players in tournament under host
 
 
     const joinButton = document.createElement("button");

@@ -50,6 +50,10 @@ io.on("connection", (socket) => {
                 socket.emit("usernameTaken")
                 taken = true;
             }
+            if(username.length == 0) { //dont want to let people join without setting a name
+                socket.emit("noName");
+                taken = true; 
+            }
         });
         if (taken == false) {
             socket.player = new Player(username)
@@ -155,18 +159,38 @@ io.on("connection", (socket) => {
         socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
     });
 
+    socket.on("requestMatch", (data) => { //when match page loads, we request a passage and player info for each map
+        const tournament = tournaments.find(t => t.ID === data.tournamentId); //find current tournament
+        const round = tournament.rounds[tournament.rounds.length - 1]; //get current round
+        const match = round.matches.find(m => m.matchNumber === data.matchId); //get current match
+        
+        const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`; //get room that match is in
+        io.to(roomId).emit("matchStart", {  passage: match.passage, players: [match.playerOne, match.playerTwo], roundNumber: tournament.rounds.length, matchNumber: match.matchNumber, countdown: match.countdown}); //send passage and player to people in room
+    });
+
+    socket.on("updateProgress", (data) => { //whenever we receive a progress update (should be constant) we send it to the other player with the same match number
+        const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`;
+        io.to(roomId).emit("playerProgress", { username: data.username, progress: data.progress });
+    });
+
     socket.on("matchComplete", (data) => {
         const tournament = tournaments.find(t => t.ID === data.tournamentId); 
         const round = tournament.rounds[tournament.rounds.length - 1]; // get current round
         const match = round.matches.find(m => m.matchNumber === data.matchId);
 
         match.winner = socket.player; // set the winner
+        
+        const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`; //get the current room
+        io.to(roomId).emit("raceResults", { winner: socket.player.username }); //send current winner to room
 
         if (round.isComplete()) { //if all matches in the round are complete
             const winners = round.getWinners();
 
             if (winners.length === 1) { //if theres only one winner, end tournament
-                io.emit("tournamentWinner", winners[0].username);
+                const winnerSocket = getSocketByUsername(winners[0].username);
+                if (winnerSocket) { //return winning message to winner only
+                    winnerSocket.emit("tournamentComplete", { winner: winners[0].username, message: "Congratulations! You won the tournament!" });
+                }
                 return;
             }
             const nextRound = new Round(winners); //else we wanna start a new round
