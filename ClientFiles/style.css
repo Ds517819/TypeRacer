@@ -1,33 +1,45 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: black;
+
+    background-image: url('https://www.techspot.com/images2/news/bigimage/2025/03/2025-03-18-image-14.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
     margin: 0;
     padding: 20px;
-}
-
-#messageBox {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    overflow-y: auto;
-    border: 2px solid grey;
-    border-radius: 8px;
-    padding: 16px;
-    background-color: #1a1a1a;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    min-height: 100vh;
 }
 
-.message {
-    padding: 8px 12px;
-    border-radius: 6px;
-    background-color: #007bff;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
-    font-size: 17px;
-    font-weight: bold;
+h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    color: black;
+}
+
+
+button {
+    background: #007bff;
     color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
+input {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid grey;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    color: white;
+    margin-right: 10px;
+}

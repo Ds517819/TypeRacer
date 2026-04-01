@@ -154,6 +154,7 @@ io.on("connection", (socket) => {
         callback()
     })
 
+        //finds the players that join the match because new socket and they join that match
     socket.on("joinMatch", (data) => {
         socket.player = players.find(p => p.username === data.username);
         socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
@@ -202,6 +203,7 @@ io.on("connection", (socket) => {
                 const socket2 = getSocketByUsername(match.playerTwo.username);
                 if (socket1) socket1.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
                 if (socket2) socket2.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
+                // to all the sockets in that room (socket 1 and 2) sends a redirect 
                 io.to(`tournament-${tournament.ID}-match-${match.matchNumber}`).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
             }
         }
