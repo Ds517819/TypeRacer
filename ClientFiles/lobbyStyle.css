@@ -95,7 +95,7 @@ button:disabled {
 .tournamentHolder {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
     padding: 20px;
     border: 2px solid transparent;
     border-radius: 8px;
@@ -122,6 +122,8 @@ button:disabled {
     background: #1a1a1a;
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    align-items: flex-start;
+    position: relative;
 }
 
 .tournamentBox:hover {
@@ -144,7 +146,9 @@ button:disabled {
     font-size: 14px;
     font-weight: bold;
     transition: background 0.3s ease;
-    margin-top: 10px;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
 }
 
 .joinButton:hover:not(:disabled) {

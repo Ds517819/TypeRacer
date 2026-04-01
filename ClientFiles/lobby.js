@@ -31,10 +31,11 @@ socket.on("addTournamentBox", (data) => {
 
     const queue = document.createElement("p");
     const tournamentID = document.createElement("p");
-    const createdBy = document.createElement("p");
+    const playerList = document.createElement("p");
     queue.textContent = `Queue: 0/${data.numberOfPlayers}`;
     tournamentID.textContent = `ID: ${data.id}`;
-    createdBy.textContent = `Created by: ${data.createdBy}`;
+    playerList.textContent = `${data.usernames ? 'In Queue: ' + data.usernames.join(', ') : ''}`;
+    
     //to do: add way to see current players in tournament under host
 
 
@@ -45,7 +46,7 @@ socket.on("addTournamentBox", (data) => {
 
     box.appendChild(queue);
     box.appendChild(tournamentID);
-    box.appendChild(createdBy);
+    box.appendChild(playerList);
     box.appendChild(joinButton);
 
     // if player is already in tournament, gray out the button
@@ -65,6 +66,7 @@ socket.on("addTournamentBox", (data) => {
         inTournament = true;
         tournamentMakerButton.disabled = true;
         tournamentMakerButton.style.color = "gray";
+        tournamentMakerButton.innerHTML = "Joined";
     });
 });
 
@@ -74,7 +76,9 @@ socket.on("updateQueue", (data) => {
     const box = document.querySelector(`#tournament-${data.id}`);
     console.log("updateQueue fired", data, "box found:", box); // debug line
     const queue = box.querySelector("p:nth-child(1)"); // selects the first p (queue)
-    queue.textContent = `Queue: ${data.queueCount}/${data.maxPlayers}`
+    queue.textContent = `Queue: ${data.queueCount}/${data.maxPlayers}`; // updates queue count and shows usernames if available
+    const playerList = box.querySelector("p:nth-child(3)"); // selects the third p (player list)
+    playerList.textContent = `${data.usernames ? 'Queue: ' + data.usernames.join(', ') : ''}`; // updates player list
     if (data.queueCount >= data.maxPlayers) { //automatically remove tournament box once full
         box.remove();
     };

@@ -1,4 +1,5 @@
-const { Tournament, Player, Match, Queue, Round } = require("./serverClasses.js");
+
+const fs = require('fs')
 //loads express module and assigns it to a variable called express
 const express = require("express");
 //to access http server
@@ -73,8 +74,8 @@ io.on("connection", (socket) => {
         if (tournaments.length !== 0) {
             tournaments.forEach((tournament) => {
                 if (tournament.players.length != tournament.maxPlayers) {
-                    socket.emit("addTournamentBox", { numberOfPlayers: tournament.maxPlayers, id: tournament.ID, createdBy: tournament.players[0].username });
-                    socket.emit("updateQueue", { id: tournament.ID, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
+                    socket.emit("addTournamentBox", { numberOfPlayers: tournament.maxPlayers, id: tournament.ID, usernames: tournament.getUsernames() ? tournament.getUsernames().split(" ") : [] });
+                    socket.emit("updateQueue", { id: tournament.ID, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers, usernames: tournament.getUsernames() ? tournament.getUsernames().split(" ") : [] });
                 }
             });
         }
@@ -88,8 +89,8 @@ io.on("connection", (socket) => {
         tournament.addPlayer(socket.player); //automatically add host to tournament
         tournaments.push(tournament);
 
-        io.emit("addTournamentBox", { numberOfPlayers, id, createdBy: tournament.players[0].username });
-        io.emit("updateQueue", { id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers });
+        io.emit("addTournamentBox", { numberOfPlayers, id, usernames: tournament.getUsernames() ? tournament.getUsernames().split(" ") : [] }); // also send usernames to display in lobby
+        io.emit("updateQueue", { id: id, queueCount: tournament.players.length, maxPlayers: tournament.maxPlayers, usernames: tournament.getUsernames() });
         console.log("Emitted addTournamentBox to all clients");
 
     });
@@ -114,7 +115,8 @@ io.on("connection", (socket) => {
             io.emit("updateQueue", {
                 id: tournamentID,
                 queueCount: tournament.players.length,
-                maxPlayers: tournament.maxPlayers
+                maxPlayers: tournament.maxPlayers,
+                usernames: tournament.getUsernames() ? tournament.getUsernames().split(" ") : []
             });
 
 
@@ -156,8 +158,8 @@ io.on("connection", (socket) => {
 
         //finds the players that join the match because new socket and they join that match
     socket.on("joinMatch", (data) => {
-        socket.player = players.find(p => p.username === data.username);
-        socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`);
+        socket.player = players.find(p => p.username === data.username);//find and set player for new socket
+        socket.join(`tournament-${data.tournamentId}-match-${data.matchId}`); //that new socket joins the match room
     });
 
     socket.on("requestMatch", (data) => { //when match page loads, we request a passage and player info for each map
@@ -223,4 +225,167 @@ function getSocketByUsername(username) { // allows us to get a socket by usernam
         }
     }
     return null;
+}
+
+
+class Tournament {
+    constructor(ID, maxPlayers) {
+        this.players = [];
+        this.ID = ID;
+        this.maxPlayers = maxPlayers;  //adding comment to commit to branch
+        this.currentPlayers = 0; //adding to track how many players in each tournament, will also be used to prevent players from joining full lobby
+        this.rounds = []; //keeps track of matches
+
+    }
+
+    getPlayer(index) {
+        console.log(this.players[index]); // added this.
+    }
+
+    getUsernames() {
+        return this.players.map(player => player.username).join(" ");
+    }
+
+    addPlayer(player) {
+        this.players.push(player); // added this.
+        this.currentPlayers++;
+    }
+
+    removePlayer(player) { // helper for remove players
+        const index = this.players.indexOf(player);
+        this.players.splice(index, 1);
+        this.currentPlayers--;
+    }
+
+    removePlayerLosers() {
+        this.matches.forEach(match => {
+            if (match.loser) this.removePlayer(match.loser);
+        });
+    }
+    startRound() {
+            const round = new Round(this.players);
+            this.rounds.push(round);
+            return round;
+        }
+}
+
+
+
+
+
+class Round {
+    constructor(players) {
+        this.matches = [];
+        this.players = players;
+        this.createMatches();
+    }
+
+    createMatches() {
+        for (let i = 0; i < this.players.length; i += 2) {
+            const match = new Match(this.players[i], this.players[i + 1], this.matches.length);
+            this.matches.push(match);
+        }
+    }
+
+    getWinners() {
+        return this.matches.map(match => match.winner);
+    }
+
+    isComplete() {
+        return this.matches.every(match => match.winner !== null);
+    }
+}
+
+
+class Player {
+    constructor(username) {
+        this.username = username;
+        this.passageQueue = null; // included in player because each player gets their own for each match
+    }
+
+    makePassageQueue(passage) {
+        const queue = new Queue()
+        passage.split('').forEach((character) => {
+            queue.enqueue(character)
+        })
+        return queue
+    }
+
+    isFinished() {
+        if (this.passageQueue !== null) {
+            // if they finished the passage return true
+            if (this.passageQueue.isEmpty()) {
+                this.passageQueue = null; //wipes for next round?
+                return true;
+            }
+            //otherwise they are not finished
+            else {
+                return false;
+            }
+        }
+        return false;
+
+    }
+
+    checkInput(key) { //players inputted key will be compared to the queue and will dequeue if it is the same
+        if (key === this.passageQueue.peek()) {
+            this.passageQueue.dequeue();
+            return true;
+        }
+        else {
+            return false
+        }
+    }
+
+}
+
+
+//class for the 1v1s
+class Match {
+    constructor(playerOne, playerTwo, matchNumber) {
+        this.playerOne = playerOne
+        this.playerTwo = playerTwo
+        this.matchNumber = matchNumber
+        this.countdown = 10
+        this.passage = this.readPassage()
+        this.startTime = 0
+        this.endTime = 0
+        this.loser = null; // will be player
+        this.winner = null;
+    }
+
+
+    //will read passages file and randomly return one passage for use
+    readPassage() {
+        const passages = fs.readFileSync('passages.txt', 'utf8').split('\n')
+
+        const passage = passages[Math.floor(Math.random() * passages.length)] // gets random passage
+
+        return passage
+    }
+
+
+
+}
+
+class Queue {
+    constructor() {
+        this.items = []
+    }
+
+    enqueue(item) {
+        this.items.push(item)
+    }
+
+    dequeue() {
+        return this.items.shift()
+    }
+
+    peek() {
+        return this.items[0]
+    }
+
+    isEmpty() {
+        return this.items.length === 0
+    }
 }
