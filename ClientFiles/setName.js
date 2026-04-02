@@ -15,6 +15,22 @@ sendNameButton.addEventListener('click', () => {
   inputName.value = '';
 });
 
+sendNameButton.addEventListener('keypress', (event) => {
+  if (event.key === 'Enter') {
+    username = inputName.value;
+    localStorage.setItem("username", username)
+    socket.emit("setName", username)
+    inputName.value = '';
+  }
+});
+
+inputName.addEventListener('keydown', (event) => { //now enter key also sets username
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    sendNameButton.click();
+  }
+});
+
 //shows password taken if in server array of users it already exists
 socket.on("usernameTaken", () => {
   takenTag.style.display = "block";

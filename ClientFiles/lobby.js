@@ -2,6 +2,7 @@
 const socket = io();
 const numberOfPlayers = document.getElementById('numberOfPlayers');
 const tournamentMakerButton = document.getElementById('tournamentMakerButton');
+const allowedValues = [2, 4, 8, 16]; //accepted tournament amounts
 
 const username = localStorage.getItem("username")
 let inTournament = false;
@@ -12,15 +13,22 @@ socket.emit("requestActiveTournaments")
 tournamentMakerButton.disabled = true
 
 numberOfPlayers.addEventListener('input', () => {
-    tournamentMakerButton.disabled = inTournament || (numberOfPlayers.value === '') || (numberOfPlayers.value % 2 != 0) || (numberOfPlayers.value > 20)
+    tournamentMakerButton.disabled = inTournament || !filterOptions(numberOfPlayers.value) //if user is in a tournament or theres an invalid amount of players
 })
 tournamentMakerButton.addEventListener('click', () => {
+    if (!filterOptions(numberOfPlayers.value) || inTournament) {
+        return;
+    }
     socket.emit("tournamentCreated", numberOfPlayers.value)
     disableJoinButtons();
     tournamentMakerButton.disabled = true;
     tournamentMakerButton.style.color = "gray";
     inTournament = true;
 })
+
+function filterOptions(value) {
+    return allowedValues.includes(Number(value));
+}
 
 
 socket.on("addTournamentBox", (data) => {
@@ -36,7 +44,6 @@ socket.on("addTournamentBox", (data) => {
     tournamentID.textContent = `ID: ${data.id}`;
     playerList.textContent = `${data.usernames ? 'In Queue: ' + data.usernames.join(', ') : ''}`;
     
-    //to do: add way to see current players in tournament under host
 
 
     const joinButton = document.createElement("button");
