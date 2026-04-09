@@ -3,7 +3,6 @@ const username = localStorage.getItem("username");
 socket.emit("giveName", username);
 const matchId = parseInt(new URLSearchParams(window.location.search).get("matchId"));
 const tournamentId = parseInt(new URLSearchParams(window.location.search).get("tournamentId"));
-console.log("Match page loaded - matchId:", matchId, "tournamentId:", tournamentId);
 socket.emit("joinMatch", { matchId, tournamentId, username }); // puts player in room for their match
 
 const userInput = document.getElementById("typingInput"); //where user will type
@@ -20,6 +19,7 @@ let Players = [];
 let passagequeue = [];
 let raceStarted = false;
 let raceOver = false;
+let startTime = null;
 
 
 socket.emit("requestMatch", { matchId, tournamentId });
@@ -51,6 +51,7 @@ function displayPassage() {
 
 function startRace() { //Runs once countdown finishes and lets user type
     raceStarted = true;
+    startTime = Date.now();
     userInput.disabled = false;
     userInput.focus();
     statusMessage.textContent = 'Type the passage above!';
@@ -66,9 +67,9 @@ function createProgressBars() {
         
         const label = document.createElement('div');
         label.className = 'player-label';
-        label.textContent = `Player ${i + 1} (${player.username})`; //get the username from the server and map it to their progress bar
+        label.innerHTML = `Player ${i + 1} (${player.username}) <span id="wpm-${player.username}" class="wpm-display">0 WPM</span>`; //get the username from the server and map it to their progress bar
         if (player.username === username) { //if the player is the current user we also want to make sure they know its them
-            label.textContent += ' - You';
+            label.innerHTML = `Player ${i + 1} (${player.username}) - You <span id="wpm-${player.username}" class="wpm-display">0 WPM</span>`; //mark current user as themself 
             progressContainer.classList.add('current-player');
         }
         
@@ -113,11 +114,27 @@ function startCountdown(seconds) { //once both clients connect to the match we s
     }, 1000);
 }
 
-function updateProgress(playerUsername, progress) { //used to update progress bar GUI for Each player, which is then sent back to the server and relayed to their opponent. the actual emit is done after user input
+function updateProgress(playerUsername, progress, wpm) { //used to update progress bar GUI for Each player, which is then sent back to the server and relayed to their opponent. the actual emit is done after user input
     const progressBar = document.getElementById(`progress-${playerUsername}`); 
     const percentage = document.getElementById(`percentage-${playerUsername}`);
-    progressBar.style.width = `${progress}%`;
-    percentage.textContent = `${progress}%`;
+    const wpmDisplay = document.getElementById(`wpm-${playerUsername}`);
+    
+    if (progressBar) { //Update progress bar, percentage complete, and wpm everytime theres an input
+        progressBar.style.width = `${progress}%`;
+    }
+    if (percentage) {
+        percentage.textContent = `${progress}%`;
+    }
+    if (wpmDisplay) {
+        wpmDisplay.textContent = `${wpm} WPM`;
+    }
+}
+
+function calculateWPM() { //function to calculate each users wpm
+    if (!startTime) return 0;
+    const timeElapsed = (Date.now() - startTime) / 1000 / 60; // convert to minutes
+    const wordsTyped = currentIndex / 5; 
+    return Math.round(wordsTyped / timeElapsed);
 }
 
 function endRace() { //once passageQueue is empty
@@ -149,8 +166,9 @@ userInput.addEventListener('input', (e) => { //handles user input
             currentIndex++; //move to next num index in passage
             
             const progress = Math.round((currentIndex / currPassage.length) * 100); //calculate progress in divisibles of 10, might change later
-            updateProgress(username, progress);
-            socket.emit("updateProgress", { username, progress, matchId, tournamentId }); //send progress across the server
+            const wpm = calculateWPM(); //calculate WPM per user, and send updates to server to relay to opponent
+            updateProgress(username, progress, wpm);
+            socket.emit("updateProgress", { username, progress, wpm, matchId, tournamentId }); //send progress across the server
             
             if (passagequeue.length === 0) { //once queue is empty we end the race 
                 endRace();
@@ -170,8 +188,8 @@ userInput.addEventListener('paste', (e) => { //this is used to prevent pasting i
 
 
 socket.on("playerProgress", (data) => { //wheever we get a progress update from the server (which is whenever user inputs) we want to update it on the opponents side
-    if (data.username !== username) { //only update progress of other player
-        updateProgress(data.username, data.progress);
+    if (data.matchId === matchId && data.username !== username) { //only update progress of other player in the same match
+        updateProgress(data.username, data.progress, data.wpm); //added wpm
     }
 });
 
@@ -180,13 +198,20 @@ socket.on("raceResults", (data) => { //when we receive data that the current rou
     statusMessage.textContent = `Race finished! Winner: ${data.winner}`;
     statusMessage.style.display = 'block';
     
-    if (data.winner === username) { //if winner matches up with current user, tell them they won
+    const won = data.winner === username; //if current player is the winner we send them to the waiting room, otherwise we send them black to lobby
+    if (won === true) { //if winner matches up with current user, tell them they won
         statusMessage.textContent += ' - You won!';
+        setTimeout(() => { 
+            statusMessage.textContent += ' Moving to waiting room...';
+            window.location.href = `/waitingRoom.html?matchId=${matchId}&tournamentId=${tournamentId}&won=${won}`; //after 2 seconds redirect to waiting room, this is 2 seconds since I would run into a race condition where they wouldnt be redirected to the next game but their opponent would
+        }, 2000);
+    } else { //else, they lost
+        statusMessage.textContent += ' - You have been eliminated!';
+        setTimeout(() => { 
+            statusMessage.textContent += ' Returning to lobby...';
+            window.location.href = '/lobby.html'; //redirect to lobby after 3 seconds
+        }, 3000);
     }
-    
-    setTimeout(() => { //Move player to next match if there is one after three seconds
-        statusMessage.textContent += ' Redirecting to next match...';
-    }, 3000);
 });
 
 socket.on("tournamentComplete", (data) => { //once tournament is complete send player back to lobby

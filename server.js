@@ -128,16 +128,13 @@ io.on("connection", (socket) => {
                 round.matches.forEach((match) => {
                     const roomId = `tournament-${tournament.ID}-match-${match.matchNumber}`;
 
-                    const socket1 = getSocketByUsername(match.playerOne.username);
+                    const socket1 = getSocketByUsername(match.playerOne.username); //find unique socket for each player based on their username
                     const socket2 = getSocketByUsername(match.playerTwo.username);
 
-                      console.log("socket1 found:", !!socket1, match.playerOne.username);
-                        console.log("socket2 found:", !!socket2, match.playerTwo.username);
-
-                    if (socket1) socket1.join(roomId);
-                    if (socket2) socket2.join(roomId);
-
-                    io.to(roomId).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
+                    socket1.join(roomId); //send player 1 to their respective match
+                    socket1.emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
+                    socket2.join(roomId); //send player 2 to the same match
+                    socket2.emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
                 });
             }
         }
@@ -173,7 +170,7 @@ io.on("connection", (socket) => {
 
     socket.on("updateProgress", (data) => { //whenever we receive a progress update (should be constant) we send it to the other player with the same match number
         const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`;
-        io.to(roomId).emit("playerProgress", { username: data.username, progress: data.progress });
+        io.to(roomId).emit("playerProgress", { username: data.username, progress: data.progress, wpm: data.wpm, matchId: data.matchId });
     });
 
     socket.on("matchComplete", (data) => {
@@ -185,30 +182,41 @@ io.on("connection", (socket) => {
         
         const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`; //get the current room
         io.to(roomId).emit("raceResults", { winner: socket.player.username }); //send current winner to room
+    });
 
-        if (round.isComplete()) { //if all matches in the round are complete
-            const winners = round.getWinners();
-
-            if (winners.length === 1) { //if theres only one winner, end tournament
-                const winnerSocket = getSocketByUsername(winners[0].username);
-                if (winnerSocket) { //return winning message to winner only
-                    winnerSocket.emit("tournamentComplete", { winner: winners[0].username, message: "Congratulations! You won the tournament!" });
-                }
-                return;
-            }
-            const nextRound = new Round(winners); //else we wanna start a new round
-            tournament.rounds.push(nextRound); 
-
-            for (let i = 0; i < nextRound.matches.length; i++) { //for each match in the next round, send the corresponding players to their match page
-                const match = nextRound.matches[i];
-                const socket1 = getSocketByUsername(match.playerOne.username);
-                const socket2 = getSocketByUsername(match.playerTwo.username);
-                if (socket1) socket1.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
-                if (socket2) socket2.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
-                // to all the sockets in that room (socket 1 and 2) sends a redirect 
-                io.to(`tournament-${tournament.ID}-match-${match.matchNumber}`).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`);
-            }
+    socket.on("joinWaitingRoom", (data) => { //when winner joins waiting room
+        socket.join(`tournament-${data.tournamentId}-waiting`); //join waiting room
+        
+        const tournament = tournaments.find(t => t.ID === data.tournamentId);
+        const round = tournament.rounds[tournament.rounds.length - 1];
+        
+        if (round.winnersInWaitingRoom.includes(data.username) === false) { //mark this winner as in waiting room
+            round.winnersInWaitingRoom.push(data.username);
         }
+        
+        if (round.isComplete() === true && round.allMatchesComplete() === true) { //if all matches are complete AND all winners are in waiting room
+                const winners = round.getWinners();
+
+
+                if (winners.length === 1) { //if theres only one winner, end tournament
+                    io.to(`tournament-${tournament.ID}-waiting`).emit("tournamentComplete", { 
+                        winner: winners[0].username, 
+                        message: "Tournament Complete! Winner: " + winners[0].username 
+                    });
+                    return;
+                }
+                const nextRound = new Round(winners); //else we wanna start a new round
+                tournament.rounds.push(nextRound); 
+
+                for (let i = 0; i < nextRound.matches.length; i++) { //for each match in the next round, send the corresponding players to their match page
+                    const match = nextRound.matches[i];
+                    const socket1 = getSocketByUsername(match.playerOne.username);
+                    const socket2 = getSocketByUsername(match.playerTwo.username);
+                    socket1.join(`tournament-${tournament.ID}-match-${match.matchNumber}`); //add both players to their match room
+                    socket2.join(`tournament-${tournament.ID}-match-${match.matchNumber}`);
+                    io.to(`tournament-${tournament.ID}-match-${match.matchNumber}`).emit("redirect", `/match.html?matchId=${match.matchNumber}&tournamentId=${tournament.ID}`); //redirect both to match page
+                }
+            }
     });
 
 
@@ -218,7 +226,7 @@ io.on("connection", (socket) => {
 
 
 
-function getSocketByUsername(username) { // allows us to get a socket by username, useful for sending messages to specific people
+function getSocketByUsername(username) { //allows us to get a socket by username, useful for sending messages to specific people
     for (const [id, socket] of io.sockets.sockets) {
         if (socket.player && socket.player.username === username) {
             return socket;
@@ -277,22 +285,42 @@ class Round {
     constructor(players) {
         this.matches = [];
         this.players = players;
+        this.winnersInWaitingRoom = []; // track which winners have joined waiting room
         this.createMatches();
     }
 
-    createMatches() {
+    createMatches() { 
         for (let i = 0; i < this.players.length; i += 2) {
             const match = new Match(this.players[i], this.players[i + 1], this.matches.length);
             this.matches.push(match);
         }
     }
 
-    getWinners() {
-        return this.matches.map(match => match.winner);
+    getWinners() { //array of winners from previous rounds
+        const winners = [];
+        for (let i = 0; i < this.matches.length; i++) { //for each match get the winner and add them to the array
+            winners.push(this.matches[i].winner); 
+        }
+        return winners;
     }
 
-    isComplete() {
-        return this.matches.every(match => match.winner !== null);
+    isComplete() { //make sure all matches are finished before advancing to next round
+        for (let i = 0; i < this.matches.length; i++) {
+            if (this.matches[i].winner === null) { //if there isnt a winner yet, we do not advacnce
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    allMatchesComplete() { //make sure all matches are complete and winners have been redirected to waiting room
+        const winners = this.getWinners();
+        for (let i = 0; i < winners.length; i++) { //make sure each winning username is in the array
+            if (this.winnersInWaitingRoom.includes(winners[i].username) === false) { //if theres a winner not yet waiting we dont go to the next round
+                return false;
+            }
+        }
+        return true;
     }
 }
 
