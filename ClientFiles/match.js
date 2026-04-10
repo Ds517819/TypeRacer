@@ -165,7 +165,7 @@ userInput.addEventListener('input', (e) => { //handles user input
             document.getElementById(currentIndex).classList.remove('incorrect'); //marks character as incorract, and as such turns it red
             currentIndex++; //move to next num index in passage
             
-            const progress = Math.round((currentIndex / currPassage.length) * 100); //calculate progress in divisibles of 10, might change later
+            const progress = Math.min(100, Math.round((currentIndex / currPassage.length) * 100)); // calculate progress and clamp at 100
             const wpm = calculateWPM(); //calculate WPM per user, and send updates to server to relay to opponent
             updateProgress(username, progress, wpm);
             socket.emit("updateProgress", { username, progress, wpm, matchId, tournamentId }); //send progress across the server

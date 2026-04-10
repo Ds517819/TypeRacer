@@ -190,7 +190,9 @@ io.on("connection", (socket) => {
             loserSocket.emit("redirect", `/loserPage.html?tournamentId=${tournament.ID}&won=false`); //send loser to loser page
         }
         round.removePlayer(match.loser); // remove the loser from the round
-        io.emit("updateTournamentResults", { tournamentId: data.tournamentId, roundNumber: tournament.rounds.length, matchId: match.matchNumber, winner: socket.player.username, loser: match.loser.username }); //update tournament results for waiting room
+        const resultPayload = { tournamentId: data.tournamentId, roundNumber: tournament.rounds.length, matchId: match.matchNumber, winner: socket.player.username, loser: match.loser.username };
+        tournament.results.push(resultPayload);
+        io.emit("updateTournamentResults", resultPayload); //update tournament results for waiting room
     });
 
     socket.on("joinWaitingRoom", (data) => { //when winner joins waiting room
@@ -198,6 +200,12 @@ io.on("connection", (socket) => {
         
         const tournament = tournaments.find(t => t.ID === data.tournamentId);
         const round = tournament.rounds[tournament.rounds.length - 1];
+        
+        if (tournament && Array.isArray(tournament.results)) {
+            tournament.results.forEach((result) => {
+                socket.emit("updateTournamentResults", result);
+            });
+        }
         
         if (round.winnersInWaitingRoom.includes(data.username) === false) { //mark this winner as in waiting room
             round.winnersInWaitingRoom.push(data.username);
@@ -252,6 +260,7 @@ class Tournament {
         this.maxPlayers = maxPlayers;  //adding comment to commit to branch
         this.currentPlayers = 0; //adding to track how many players in each tournament, will also be used to prevent players from joining full lobby
         this.rounds = []; //keeps track of matches
+        this.results = []; // store completed match results for replay in waiting room
 
     }
 
@@ -397,11 +406,13 @@ class Match {
 
     //will read passages file and randomly return one passage for use
     readPassage() {
-        const passages = fs.readFileSync('passages.txt', 'utf8').split('\n')
+        const passages = fs.readFileSync('passages.txt', 'utf8')
+            .split(/\r?\n/)
+            .filter(line => line.trim().length > 0);
 
-        const passage = passages[Math.floor(Math.random() * passages.length)] // gets random passage
+        const passage = passages[Math.floor(Math.random() * passages.length)]; // gets random passage
 
-        return passage
+        return passage;
     }
 
 
