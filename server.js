@@ -33,6 +33,7 @@ process.stdin.on("data", (data) => {
 
 let players = [];// arr of server players
 let tournaments = [];// arr of server tournaments
+let tournamentIdCounter = 0;// counter for unique tournament IDs
 
 
 
@@ -46,16 +47,17 @@ io.on("connection", (socket) => {
         console.log("setName received:", username);
         let taken = false;
 
-        players.forEach((player) => {
-            if (username == player.username) {
-                socket.emit("usernameTaken")
-                taken = true;
-            }
-            if(username.length == 0) { //dont want to let people join without setting a name
-                socket.emit("noName");
-                taken = true; 
-            }
-        });
+        if(username.length == 0) { //dont want to let people join without setting a name
+            socket.emit("noName");
+            taken = true;
+        } else {
+            players.forEach((player) => {
+                if (username == player.username) {
+                    socket.emit("usernameTaken")
+                    taken = true;
+                }
+            });
+        }
         if (taken == false) {
             socket.player = new Player(username)
             players.push(socket.player);
@@ -84,7 +86,7 @@ io.on("connection", (socket) => {
     //when someone presses create tournament button
     socket.on("tournamentCreated", (numberOfPlayers) => {
         console.log("Tournament created with", numberOfPlayers, "players");
-        const id = tournaments.length;
+        const id = tournamentIdCounter++;
         const tournament = new Tournament(id, numberOfPlayers);
         tournament.addPlayer(socket.player); //automatically add host to tournament
         tournaments.push(tournament);
@@ -179,9 +181,16 @@ io.on("connection", (socket) => {
         const match = round.matches.find(m => m.matchNumber === data.matchId);
 
         match.winner = socket.player; // set the winner
+        match.loser = match.playerOne === socket.player ? match.playerTwo : match.playerOne; // set the loser
         
         const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`; //get the current room
         io.to(roomId).emit("raceResults", { winner: socket.player.username }); //send current winner to room
+        const loserSocket = getSocketByUsername(match.loser.username);
+        if (loserSocket) {
+            loserSocket.emit("redirect", `/loserPage.html?tournamentId=${tournament.ID}&won=false`); //send loser to loser page
+        }
+        round.removePlayer(match.loser); // remove the loser from the round
+        io.emit("updateTournamentResults", { tournamentId: data.tournamentId, roundNumber: tournament.rounds.length, matchId: match.matchNumber, winner: socket.player.username, loser: match.loser.username }); //update tournament results for waiting room
     });
 
     socket.on("joinWaitingRoom", (data) => { //when winner joins waiting room
@@ -290,7 +299,7 @@ class Round {
     }
 
     createMatches() { 
-        for (let i = 0; i < this.players.length; i += 2) {
+        for (let i = 0; i < this.players.length - 1; i += 2) {
             const match = new Match(this.players[i], this.players[i + 1], this.matches.length);
             this.matches.push(match);
         }
@@ -321,6 +330,9 @@ class Round {
             }
         }
         return true;
+    }
+    removePlayer(player){
+        this.players = this.players.filter(p => p !== player);
     }
 }
 

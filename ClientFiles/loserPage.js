@@ -7,6 +7,11 @@ const tournamentId = parseInt(new URLSearchParams(window.location.search).get("t
 const won = new URLSearchParams(window.location.search).get("won") === "true";
 
 const resultMessage = document.getElementById("resultMessage");
+const backToLobbyBtn = document.getElementById("backToLobbyBtn");
+
+backToLobbyBtn.addEventListener("click", () => {
+    window.location.href = '/lobby.html';
+});
 
 if (won === true) { // if they won, let them know they won the match
     resultMessage.textContent = "You won your match!";
@@ -14,7 +19,7 @@ if (won === true) { // if they won, let them know they won the match
     resultMessage.textContent = "Match finished.";
 }
 
-socket.emit("joinWaitingRoom", { tournamentId, username }); //join waiting room for this tournament
+
 
 socket.on("redirect", (url) => { //redirect to next match
     window.location.href = url;

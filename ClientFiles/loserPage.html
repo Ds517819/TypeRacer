@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Waiting Room</title>
+    <title>youLost</title>
     <link rel="stylesheet" href="waitingRoomStyle.css">
 </head>
 <body>
@@ -9,17 +9,17 @@
         <h1>Match Complete</h1>
         <div id="resultMessage"></div>
         
-        <div class="waiting-section">
-            <p>Waiting for other matches to finish...</p>
-        </div>
+        
         <div id="tournamentResults" class="results-section">
             <h2>Tournament Results</h2>
             <ul id="resultsList"></ul>
         </div>
 
+        <button id="backToLobbyBtn" style="display:none;">Back to Lobby</button>
+
     </div>
     
     <script src="/socket.io/socket.io.js"></script>
-    <script src="waitingRoom.js"></script>
+    <script src="loserPage.js"></script>
 </body>
 </html>
