@@ -99,6 +99,20 @@ socket.on("redirect", (url) => {
     window.location.href = url;
 });
 
+socket.on("resetTournamentState", () => { //if user loses change their tournament status to false so they can make a new tournament
+    inTournament = false;
+    tournamentMakerButton.disabled = false;
+    tournamentMakerButton.style.color = "";
+    tournamentMakerButton.innerHTML = "Create Tournament";
+    
+
+    const joinButtons = document.querySelectorAll(".joinButton"); //let them join tournaments again
+    joinButtons.forEach((button) => {
+        button.disabled = false;
+        button.style.color = "";
+    });
+});
+
 function disableJoinButtons() {
     const joinButtons = document.querySelectorAll(".joinButton");
     joinButtons.forEach((button) => {

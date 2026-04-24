@@ -29,7 +29,6 @@ body {
     align-items: center;
 }
 
-
 label {
     font-size: 18px;
     font-weight: bold;
@@ -60,7 +59,6 @@ button {
     cursor: pointer;
     font-size: 16px;
     margin: 10px 5px;
-    transition: background 0.3s ease;
 }
 
 button:hover:not(:disabled) {
@@ -68,28 +66,9 @@ button:hover:not(:disabled) {
 }
 
 button:disabled {
-    cursor: not-allowed !important;
+    cursor: not-allowed;
     opacity: 0.5;
     background: #555;
-}
-
-.tournamentButton:disabled {
-    cursor: not-allowed !important;
-    opacity: 0.5;
-}
-
-.button {
-    background: #007bff;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.button:hover:not(:disabled) {
-    background: #0056b3;
 }
 
 .tournamentHolder {
@@ -97,15 +76,11 @@ button:disabled {
     flex-direction: column;
     gap: 20px;
     padding: 20px;
-    border: 2px solid transparent;
     border-radius: 8px;
     width: 100%;
     flex: 1;
-    min-height: 0;
     overflow-y: auto;
     background: black;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
-    margin-top: 0;
 }
 
 .tournamentBox {
@@ -120,15 +95,7 @@ button:disabled {
     flex-direction: column;
     gap: 10px;
     background: #1a1a1a;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    align-items: flex-start;
     position: relative;
-}
-
-.tournamentBox:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.15);
 }
 
 .tournamentBox p {
@@ -145,7 +112,6 @@ button:disabled {
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
-    transition: background 0.3s ease;
     position: absolute;
     bottom: 15px;
     right: 15px;

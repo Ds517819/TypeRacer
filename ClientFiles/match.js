@@ -182,7 +182,7 @@ userInput.addEventListener('input', (e) => { //handles user input
     }
 });
 
-userInput.addEventListener('paste', (e) => { //this is used to prevent pasting into the textbox
+userInput.addEventListener('paste', (e) => { //this is used to prevent pasting into the textbox note: dont even think this is needed since we search by character, but gonna keep anyway.
     e.preventDefault(); 
 })
 

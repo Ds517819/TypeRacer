@@ -31,7 +31,7 @@ inputName.addEventListener('keydown', (event) => { //now enter key also sets use
   }
 });
 
-//shows password taken if in server array of users it already exists
+//shows username taken if in server array of users it already exists
 socket.on("usernameTaken", () => {
   takenTag.style.display = "block";
 });

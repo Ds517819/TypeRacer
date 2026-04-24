@@ -163,8 +163,16 @@ io.on("connection", (socket) => {
 
     socket.on("requestMatch", (data) => { //when match page loads, we request a passage and player info for each map
         const tournament = tournaments.find(t => t.ID === data.tournamentId); //find current tournament
+        if (tournament === undefined || tournament.rounds === undefined || tournament.rounds.length === 0) {
+            console.error("Tournament or rounds not found");
+            return;
+        }
         const round = tournament.rounds[tournament.rounds.length - 1]; //get current round
         const match = round.matches.find(m => m.matchNumber === data.matchId); //get current match
+        if (match === undefined) {
+            console.error("Match not found");
+            return;
+        }
         
         const roomId = `tournament-${data.tournamentId}-match-${data.matchId}`; //get room that match is in
         io.to(roomId).emit("matchStart", {  passage: match.passage, players: [match.playerOne, match.playerTwo], roundNumber: tournament.rounds.length, matchNumber: match.matchNumber, countdown: match.countdown}); //send passage and player to people in room
@@ -177,8 +185,16 @@ io.on("connection", (socket) => {
 
     socket.on("matchComplete", (data) => {
         const tournament = tournaments.find(t => t.ID === data.tournamentId); 
+        if (tournament === undefined || tournament.rounds === undefined || tournament.rounds.length === 0) { //everytime we want to interact with amount of rounds/tournament, make sure they exist
+            console.error("Tournament or rounds not found");
+            return;
+        }
         const round = tournament.rounds[tournament.rounds.length - 1]; // get current round
         const match = round.matches.find(m => m.matchNumber === data.matchId);
+        if (match === undefined) {
+            console.error("Match not found");
+            return;
+        }
 
         match.winner = socket.player; // set the winner
         match.loser = match.playerOne === socket.player ? match.playerTwo : match.playerOne; // set the loser
@@ -188,6 +204,7 @@ io.on("connection", (socket) => {
         const loserSocket = getSocketByUsername(match.loser.username);
         if (loserSocket) {
             loserSocket.emit("redirect", `/loserPage.html?tournamentId=${tournament.ID}&won=false`); //send loser to loser page
+            loserSocket.emit("resetTournamentState"); // Allow loser to create new tournaments
         }
         round.removePlayer(match.loser); // remove the loser from the round
         const resultPayload = { tournamentId: data.tournamentId, roundNumber: tournament.rounds.length, matchId: match.matchNumber, winner: socket.player.username, loser: match.loser.username };
@@ -220,6 +237,21 @@ io.on("connection", (socket) => {
                         winner: winners[0].username, 
                         message: "Tournament Complete! Winner: " + winners[0].username 
                     });
+                    
+
+                    for (let i = 0; i < tournament.players.length; i++) { //for each player in the tournament, reset their tournament state so that upon completion theyre no longer in a tournament and can create a new one
+                        const playerSocket = getSocketByUsername(tournament.players[i].username);
+                        if (playerSocket) {
+                            playerSocket.emit("resetTournamentState");
+                        }
+                    }
+                    
+                    
+                    const tournamentIndex = tournaments.findIndex(t => t.ID === tournament.ID); //delete tournament from server once its done
+                    if (tournamentIndex !== -1) {
+                        tournaments.splice(tournamentIndex, 1);
+                    }
+                    
                     return;
                 }
                 const nextRound = new Round(winners); //else we wanna start a new round
