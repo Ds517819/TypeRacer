@@ -9,8 +9,9 @@ let inTournament = false;
 
 socket.emit("giveName", username)
 socket.emit("requestActiveTournaments")
+socket.emit("joinLobby")
 
-tournamentMakerButton.disabled = true
+tournamentMakerButton.disabled = true;
 
 numberOfPlayers.addEventListener('input', () => {
     tournamentMakerButton.disabled = inTournament || !filterOptions(numberOfPlayers.value) //if user is in a tournament or theres an invalid amount of players

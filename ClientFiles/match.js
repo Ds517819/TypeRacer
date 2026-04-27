@@ -209,7 +209,7 @@ socket.on("raceResults", (data) => { //when we receive data that the current rou
         statusMessage.textContent += ' - You have been eliminated!';
         setTimeout(() => { 
             statusMessage.textContent += ' Returning to lobby...';
-            window.location.href = '/lobby.html'; //redirect to lobby after 3 seconds
+            window.location.href = `/loserPage.html?tournamentId=${tournamentId}&won=false`;
         }, 3000);
     }
 });

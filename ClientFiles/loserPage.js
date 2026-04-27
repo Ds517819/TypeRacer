@@ -13,11 +13,15 @@ backToLobbyBtn.addEventListener("click", () => {
     window.location.href = '/lobby.html';
 });
 
-if (won === true) { // if they won, let them know they won the match
+if (won === true) {
     resultMessage.textContent = "You won your match!";
-} else { //else they lost, and let them know their match is over
-    resultMessage.textContent = "Match finished.";
+} else {
+    resultMessage.textContent = "You have been eliminated!";
 }
+
+backToLobbyBtn.style.display = 'block';
+
+socket.emit("joinLoserRoom", { tournamentId, username });
 
 
 

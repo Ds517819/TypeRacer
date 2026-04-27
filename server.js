@@ -212,6 +212,19 @@ io.on("connection", (socket) => {
         io.emit("updateTournamentResults", resultPayload); //update tournament results for waiting room
     });
 
+    socket.on("joinLobby", () => {
+        socket.emit("resetTournamentState");
+    });
+
+    socket.on("joinLoserRoom", (data) => {
+        const tournament = tournaments.find(t => t.ID === data.tournamentId);
+        if (!tournament) return;
+        socket.join(`tournament-${data.tournamentId}-waiting`); // join same room to receive tournamentComplete
+        tournament.results.forEach((result) => {
+            socket.emit("updateTournamentResults", result);
+        });
+    });
+
     socket.on("joinWaitingRoom", (data) => { //when winner joins waiting room
         socket.join(`tournament-${data.tournamentId}-waiting`); //join waiting room
         
